@@ -1,0 +1,52 @@
+<html>
+<head>
+    <title>RSS Reader</title>
+    <script>
+        async function fetchRSS() {
+            const response = await fetch('URL_ВАШЕЙ_RSS_ЛЕНТЫ');
+            const data = await response.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(data, "text/xml");
+            const items = xmlDoc.getElementsByTagName('item');
+
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = ''; // Очистка предыдущего содержимого
+
+            for (let item of items) {
+                const title = item.getElementsByTagName('title')[0].textContent;
+                const link = item.getElementsByTagName('link')[0].textContent;
+                let description = item.getElementsByTagName('description')[0].textContent;
+
+                // Убираем изображение в начале description
+                description = description.replace(/<img[^>]*>/, '');
+
+                // Находим URL изображения и заменяем scale_avatar на scale_large
+                const imgMatch = description.match(/src="([^"]*scale_avatar[^"]*)"/);
+                let imgUrl = '';
+                if (imgMatch) {
+                    imgUrl = imgMatch[1].replace('scale_avatar', 'scale_large');
+                }
+
+                // Форматируем новое описание без изображения и добавляем его в качестве миниатюры
+                description = description.replace(/<b>.*?</b>/g, '<b>$&</b>'); // Оставляем теги <b>
+                
+                // Создаем элемент для отображения
+                const itemDiv = document.createElement('div');
+                itemDiv.innerHTML = 
+                    <h2><a href="${link}">${title}</a></h2>
+                    <div>${description}</div>
+                    ${imgUrl ? <img src="${imgUrl}" alt="Thumbnail" style="width:100px; height:auto;" /> : ''}
+                ;
+                contentDiv.appendChild(itemDiv);
+            }
+        }
+
+        setInterval(fetchRSS, 30 * 60 * 1000); // каждые 30 минут
+        fetchRSS(); // первый вызов при загрузке
+    </script>
+</head>
+<body>
+    <h1>RSS Reader</h1>
+    <div id="content"></div>
+</body>
+</html>
