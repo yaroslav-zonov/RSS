@@ -46,7 +46,34 @@
     </script>
 </head>
 <body>
-    <h1>RSS Reader</h1>
-    <div id="content"></div>
+    <h1>RSS Feed</h1>
+    <div id="rss-feed"></div>
+
+    <script>
+        const rssUrl = 'https://comicsdb.ru/rss'; // Замените на ваш URL
+
+        fetch(rssUrl)
+            .then(response => response.text())
+            .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+            .then(data => {
+                const items = data.querySelectorAll("item");
+                let html = "";
+                items.forEach(el => {
+                    const title = el.querySelector("title").textContent;
+                    const link = el.querySelector("link").textContent;
+                    const description = el.querySelector("description").textContent;
+
+                    html += 
+                        <div>
+                            <h2><a href="${link}" target="_blank">${title}</a></h2>
+                            <p>${description}</p>
+                        </div>
+                    ;
+                });
+                document.getElementById("rss-feed").innerHTML = html;
+            })
+            .catch(err => console.error('Ошибка:', err));
+    </script>
 </body>
+
 </html>
